@@ -23,11 +23,11 @@ public class readWrite implements Serializable{
     while(! inputTypeComplete){
       System.out.print("\nChoose binary or text file(b/t): ");
       fileType = keyboard.next();
-      if ((fileType.equalsIgnoreCase("b")){
+      if (fileType.equalsIgnoreCase("b")){
 		fileName = (fileName + ".txt");
 		inputTypeComplete = true;
 	  }
-	  else if (fileType.equalsIgnoreCase("t"))){
+	  else if (fileType.equalsIgnoreCase("t")){
 		fileName = (fileName + ".dat");
         inputTypeComplete = true;
       }
@@ -59,40 +59,38 @@ public class readWrite implements Serializable{
   public void read(){
 //FILE TYPE IS TEXT
       if (fileType.equalsIgnoreCase("t")){
-		String string; //output
-		  
+		  String string; //output
+		  Scanner inputStreamText = null; //keeps compiler happy
+        
         try{
-          Scanner inputStreamText = new Scanner(new FileInputStream(fileName)); //opens stream
-          while(inputStreamText.hasNextLine()){
-			string = inputStreamText.nextLine(); //reads from file
-            System.out.println(string);
-          }
-          inputStreamText.close(); //closes stream
+          inputStreamText = new Scanner(new FileInputStream(fileName)); //opens stream
         }
         catch(FileNotFoundException e){
           System.err.println("\nError: File " + fileName + " not found.");
           System.err.println("Program terminating.");
           System.exit(0);
         }
-		catch(IllegalStateException e){
-		  System.err.println(e.getMessage());
+		  catch(IllegalStateException e){
+		    System.err.println(e.getMessage());
           System.err.println("Program terminating.");
-		  System.exit(0);
-		}
-		catch(NoSuchElementException e){
-	      System.err.println(e.getMessage());
-          System.err.println("Program terminating.");
-		  System.exit(0);
-		}
+		    System.exit(0);
+	     }
+        
+        while(inputStreamText.hasNextLine()){
+			 string = inputStreamText.nextLine(); //reads from file
+          System.out.println(string);
+        }
+        inputStreamText.close(); //closes stream
       }
       
 //FILE TYPE IS BINARY
       else if (fileType.equalsIgnoreCase("b")){
         boolean moreData = true; //sentinel
-		String string; //output
+		  String string; //output
+        ObjectInputStream inputStreamBinary = null; //keeps compiler happy
         
         try{
-          ObjectInputStream inputStreamBinary = new ObjectInputStream(new FileInputStream(fileName)); //opens stream
+          inputStreamBinary = new ObjectInputStream(new FileInputStream(fileName)); //opens stream
         }
         catch(FileNotFoundException e){
           System.err.println("\nError: File " + fileName + " not found.");
@@ -104,7 +102,7 @@ public class readWrite implements Serializable{
           System.exit(0);
         }
 		  
-		while(moreData){
+		  while(moreData){
           try{
 		    string = inputStreamBinary.readUTF(); //reads from file
             System.out.print(string);
@@ -117,36 +115,42 @@ public class readWrite implements Serializable{
             System.err.println(e.getMessage());
             System.exit(0);
           }
+         try{
           inputStreamBinary.close(); //closes stream
-        }
-    }
-  }
+         }
+         catch(IOException e){
+           System.err.println(e.getMessage());
+           System.exit(0);
+         }
+       }
+     }
+   }
 //-------------------------------------------------------------------- 
   
   public void write(){
     if (! checkName()){ //if the file does not exist
       String filePath = ("Week 5/" + fileName);
-      File fileObject = new File(filePath); //opens stream
-        try{
-          if(fileObject.createNewFile()){ //creates new file
-			System.out.println("New file created.")
+      File fileObject = new File(filePath); 
+      try{
+        if(fileObject.createNewFile()){ //creates new file
+		  System.out.println("New file created.");
 		  }
 		  else{
-			System.err.println("Error: new file cannot be created.\nProgram terminating.");
-			System.exit(0);
+		    System.err.println("Error: new file cannot be created.\nProgram terminating.");
+		    System.exit(0);
 		  }
-		  fileObject.close(); //closes stream
-        }
-        catch(IOException e){
-          System.err.println(e.getMessage());
-          System.exit(0);
-        }
+      }
+      catch(IOException e){
+        System.err.println(e.getMessage());
+        System.exit(0);
+      }
     }
 
 //FILE TYPE IS TEXT
     if(fileType.equalsIgnoreCase("t")){
+      PrintWriter outputStreamText = null; //keeps compiler happy
       try{
-        PrintWriter outputStreamText = new PrintWriter(new FileOutputStream(fileName, true)); //opens stream
+        outputStreamText = new PrintWriter(new FileOutputStream(fileName, true)); //opens stream
       }
       catch(FileNotFoundException e){
         System.err.println("\nError: File " + fileName + " not found.");
@@ -165,8 +169,10 @@ public class readWrite implements Serializable{
 	  
 //FILE TYPE IS BINARY
     else if(fileType.equalsIgnoreCase("b")){
+      ObjectOutputStream outputStreamBinary = null; //keeps compiler happy
       try{
-        ObjectOutputStream outputStreamBinary = new ObjectOutputStream(new FileOutputStream(fileName)); //opens stream
+        outputStreamBinary = new ObjectOutputStream(new FileOutputStream(fileName)); //opens stream
+      }
       catch(FileNotFoundException e){
         System.err.println("\nError: File " + fileName + ".dat not found.");
         System.err.println("Program terminating.");
@@ -193,8 +199,12 @@ public class readWrite implements Serializable{
         System.err.println(e.getMessage());
         System.exit(0);
         }
-		
+		try{
         outputStreamBinary.close(); //closes stream
+      }
+      catch(IOException e){
+        System.err.println(e.getMessage());
+        System.exit(0);
       }
     }
   }
@@ -204,22 +214,18 @@ public class readWrite implements Serializable{
     if(fileType.equalsIgnoreCase("t")){
       File fileObject = new File(fileName);
       if(fileObject.exists()){
-		fileObject.close();
 		return true;
       }
       else{
-		fileObject.close();
         return false;
       }
     }
     else if(fileType.equalsIgnoreCase("b")){
       File fileObject = new File(fileName);
       if(fileObject.exists()){
-		fileObject.close();
         return true;
       }
       else{
-		fileObject.close();
         return false;
       }
     }
@@ -278,3 +284,4 @@ public class readWrite implements Serializable{
     }
     return incomplete;
   }
+}
