@@ -10,26 +10,25 @@ import java.util.Scanner;
 public class Assignment5Part2{
   public static void main(String[] args){
     boolean incomplete = true;
-    String fileName, procedure;
+    String procedure;
     
     Scanner keyboard = new Scanner(System.in);
     readWrite rW = new readWrite();
     
     while (incomplete){ //"Continue" prompt is Yes
-      System.out.print("Enter the file name: ");
-      fileName = keyboard.next();
-      
-      rW.inputBT(); //prompt for binary or text; and check for errors
-      procedure = rW.inputRW(); //prompt for read or write; and check for errors
+      rW.inputFile(); //prompt for file name
+      rW.inputBT(); //prompt for binary or text
+      procedure = rW.inputRW(); //prompt for read or write
       
       if (procedure.equalsIgnoreCase("r")){
-        rW.read(fileName);
+        rW.read();
       }
       else if (procedure.equalsIgnoreCase("w")){
-        rW.write(fileName);
+        rW.write();
       }
       else{
         System.err.println("\nError");
+        System.exit(0);
       }
       
       incomplete = (rW.keepGoing());//prompts the user "Continue?"
