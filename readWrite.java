@@ -8,43 +8,27 @@ import java.util.Scanner;
 import java.io.*;
 
 public class readWrite implements Serializable{
-  String fileName, fileType, procedure;
-  boolean moreLines = true;
+  String fileName, fileType, procedure; //user input
   Scanner keyboard = new Scanner(System.in);
-  
-  public boolean checkName(String fileName){
-    if(fileType.equalsIgnoreCase("t")){
-      File fileObject = new File(fileName + ".txt");
-      if(fileObject.exists()){
-        return true;
-      }
-      else{
-        return false;
-      }
-    }
-    else if(fileType.equalsIgnoreCase("b")){
-      File fileObject = new File(fileName + ".dat");
-      if(fileObject.exists()){
-        return true;
-      }
-      else{
-        return false;
-      }
-    }
-    else{
-      System.err.println("\nError: Program terminating.");
-      System.exit(0);
-    }
-    return false;
+//-------------------------------------------------------------------- 	
+
+  public void inputFile(){
+    System.out.print("Enter the file name: ");
+    fileName = keyboard.next();
   }
+//--------------------------------------------------------------------  
 
-
-  public void inputBT(){
-    boolean inputTypeComplete = false; //counter
+  public void inputBT(){ //prompt for binary or text
+    boolean inputTypeComplete = false; //sentinel
     while(! inputTypeComplete){
       System.out.print("\nChoose binary or text file(b/t): ");
       fileType = keyboard.next();
-      if ((fileType.equalsIgnoreCase("b")) || (fileType.equalsIgnoreCase("t"))){
+      if ((fileType.equalsIgnoreCase("b")){
+		fileName = (fileName + ".txt");
+		inputTypeComplete = true;
+	  }
+	  else if (fileType.equalsIgnoreCase("t"))){
+		fileName = (fileName + ".dat");
         inputTypeComplete = true;
       }
       else{
@@ -52,9 +36,10 @@ public class readWrite implements Serializable{
       }
     }
   }
-  
+//-------------------------------------------------------------------- 
+	
   public String inputRW(){
-    boolean inputRWComplete = false; //counter
+    boolean inputRWComplete = false; //sentinel
     while(! inputRWComplete){
       System.out.print("\nChoose read or write file(r/w): ");
       procedure = keyboard.next();
@@ -69,50 +54,48 @@ public class readWrite implements Serializable{
     }
     return ""; //keeps compiler happy
   }
+//--------------------------------------------------------------------  
   
-  
-  public void read(String fileName){
-    
-    if (checkName(fileName)){
+  public void read(){
+//FILE TYPE IS TEXT
       if (fileType.equalsIgnoreCase("t")){
+		String string; //output
+		  
         try{
-          Scanner inputStreamText = new Scanner(new FileInputStream(fileName + ".txt"));
-          
+          Scanner inputStreamText = new Scanner(new FileInputStream(fileName)); //opens stream
           while(inputStreamText.hasNextLine()){
-            System.out.println(inputStreamText.nextLine());
+			string = inputStreamText.nextLine(); //reads from file
+            System.out.println(string);
           }
-          inputStreamText.close();
+          inputStreamText.close(); //closes stream
         }
         catch(FileNotFoundException e){
-          System.err.println("\nError: File " + fileName + ".txt not found.");
+          System.err.println("\nError: File " + fileName + " not found.");
           System.err.println("Program terminating.");
           System.exit(0);
         }
+		catch(IllegalStateException e){
+		  System.err.println(e.getMessage());
+          System.err.println("Program terminating.");
+		  System.exit(0);
+		}
+		catch(NoSuchElementException e){
+	      System.err.println(e.getMessage());
+          System.err.println("Program terminating.");
+		  System.exit(0);
+		}
       }
       
+//FILE TYPE IS BINARY
       else if (fileType.equalsIgnoreCase("b")){
-        boolean moreData = true;
+        boolean moreData = true; //sentinel
+		String string; //output
         
         try{
-          ObjectInputStream inputStreamBinary = new ObjectInputStream(new FileInputStream(fileName + ".dat"));
-          
-          while(moreData){
-            try{
-              System.out.print(inputStreamBinary.readChar());
-              moreData = true;
-            }
-            catch(EOFException e){
-              moreData = false;
-            }
-            catch(IOException e){
-              System.err.println(e.getMessage());
-              System.exit(0);
-            }
-            inputStreamBinary.close();
-          }
+          ObjectInputStream inputStreamBinary = new ObjectInputStream(new FileInputStream(fileName)); //opens stream
         }
         catch(FileNotFoundException e){
-          System.err.println("\nError: File " + fileName + ".dat not found.");
+          System.err.println("\nError: File " + fileName + " not found.");
           System.err.println("Program terminating.");
           System.exit(0);
         }
@@ -120,102 +103,141 @@ public class readWrite implements Serializable{
           System.err.println(e.getMessage());
           System.exit(0);
         }
+		  
+		while(moreData){
+          try{
+		    string = inputStreamBinary.readUTF(); //reads from file
+            System.out.print(string);
+            moreData = true;
+          }
+          catch(EOFException e){ //signifies the end of the file's data
+            moreData = false;
+          }
+	      catch(IOException e){
+            System.err.println(e.getMessage());
+            System.exit(0);
+          }
+          inputStreamBinary.close(); //closes stream
+        }
+    }
+  }
+//-------------------------------------------------------------------- 
+  
+  public void write(){
+    if (! checkName()){ //if the file does not exist
+      String filePath = ("Week 5/" + fileName);
+      File fileObject = new File(filePath); //opens stream
+        try{
+          if(fileObject.createNewFile()){ //creates new file
+			System.out.println("New file created.")
+		  }
+		  else{
+			System.err.println("Error: new file cannot be created.\nProgram terminating.");
+			System.exit(0);
+		  }
+		  fileObject.close(); //closes stream
+        }
+        catch(IOException e){
+          System.err.println(e.getMessage());
+          System.exit(0);
+        }
+    }
+
+//FILE TYPE IS TEXT
+    if(fileType.equalsIgnoreCase("t")){
+      try{
+        PrintWriter outputStreamText = new PrintWriter(new FileOutputStream(fileName, true)); //opens stream
+      }
+      catch(FileNotFoundException e){
+        System.err.println("\nError: File " + fileName + " not found.");
+        System.err.println("Program terminating.");
+        System.exit(0);
+      }
+	  boolean prompt = true; //sentinel   
+      while(prompt){
+        System.out.println("\nEnter a line of information to write to the file:");
+        String string = keyboard.next();
+        outputStreamText.println(string); //adds line to existing file
+        prompt = anotherLine();
+	  }
+	  outputStreamText.close();
+    }
+	  
+//FILE TYPE IS BINARY
+    else if(fileType.equalsIgnoreCase("b")){
+      try{
+        ObjectOutputStream outputStreamBinary = new ObjectOutputStream(new FileOutputStream(fileName)); //opens stream
+      catch(FileNotFoundException e){
+        System.err.println("\nError: File " + fileName + ".dat not found.");
+        System.err.println("Program terminating.");
+        System.exit(0);
+      }
+	  catch(IOException e){
+        System.err.println(e.getMessage());
+        System.exit(0);
+      }
+		  
+		String string = ""; //user input
+        boolean prompt = true; //sentinel
+          
+        while(prompt){
+          System.out.println("\nEnter a line of information to write to the file:");
+          string = (string + "\n" + keyboard.next());
+          prompt = anotherLine();
+        }
+		  
+		try{
+          outputStreamBinary.writeUTF(string); //writes to file
+		}
+		catch(IOException e){
+        System.err.println(e.getMessage());
+        System.exit(0);
+        }
+		
+        outputStreamBinary.close(); //closes stream
+      }
+    }
+  }
+//--------------------------------------------------------------------  
+	
+  public boolean checkName(){
+    if(fileType.equalsIgnoreCase("t")){
+      File fileObject = new File(fileName);
+      if(fileObject.exists()){
+		fileObject.close();
+		return true;
+      }
+      else{
+		fileObject.close();
+        return false;
+      }
+    }
+    else if(fileType.equalsIgnoreCase("b")){
+      File fileObject = new File(fileName);
+      if(fileObject.exists()){
+		fileObject.close();
+        return true;
+      }
+      else{
+		fileObject.close();
+        return false;
       }
     }
     else{
-      System.err.println("\nError: File not found.");
+      System.err.println("\nError: Program terminating.");
+      System.exit(0);
     }
+    return false;
   }
-  
-  
-  public void write(String fileName){
-    if (! checkName(fileName)){
-      String filePath = "Week 5/" + fileName;
-      if(fileType.equalsIgnoreCase("t")){
-        File fileObject = new File(fileName + ".txt");
-        try{
-          fileObject.createNewFile();
-        }
-        catch(IOException e){
-          System.err.println(e.getMessage());
-          System.exit(0);
-        }
-      }
-      else if(fileType.equalsIgnoreCase("b")){
-        File fileObject = new File(fileName + ".dat");
-        try{
-          fileObject.createNewFile();
-        }
-        catch(IOException e){
-          System.err.println(e.getMessage());
-          System.exit(0);
-        }
-      }
-    }
-      
-    if(checkName(fileName)){
-      if(fileType.equalsIgnoreCase("t")){
-        try{
-          PrintWriter outputStreamText = new PrintWriter(new FileOutputStream(fileName + ".txt", true));
-          String string = "";
-          boolean prompt = true;
-          
-          while(prompt){
-            System.out.println("\nEnter a line of information to write to the file:");
-            string = keyboard.next();
-            outputStreamText.println(string);
-            prompt = anotherLine();
-          }
-          
-          outputStreamText.close();
-        }
-        catch(FileNotFoundException e){
-          System.err.println("\nError: File " + fileName + ".txt not found.");
-          System.err.println("Program terminating.");
-          System.exit(0);
-        }
-      }
-      else if(fileType.equalsIgnoreCase("b")){
-        try{
-          ObjectOutputStream outputStreamBinary = new ObjectOutputStream(new FileOutputStream(fileName + ".dat"));
-          String string = "";
-          boolean prompt = true;
-          
-          while(prompt){
-            System.out.println("\nEnter a line of information to write to the file:");
-            string = string + "\n" + keyboard.next();
-            prompt = anotherLine();
-          }
-          outputStreamBinary.writeObject(string);
-          
-          outputStreamBinary.close();
-        }
-        catch(FileNotFoundException e){
-          System.err.println("\nError: File " + fileName + ".dat not found.");
-            System.err.println("Program terminating.");
-            System.exit(0);
-        }
-        catch(IOException e){
-          System.err.println(e.getMessage());
-          System.exit(0);
-        }
-      }
-    }
-    else{
-      System.err.println("Error! Program terminating.");
-            System.exit(0);
-    }
-  }
-  
+//--------------------------------------------------------------------
   
   public boolean anotherLine(){
-    String input = "";
-    boolean loopDone = false;
-    boolean answer = true;
+    boolean loopDone = false; //sentinel
+    boolean answer = true; //return
     
     while(! loopDone){
       System.out.println("\nWould you like to enter another line? (Y/N)");
-      input = keyboard.next();
+      String input = keyboard.next();
       
       if(input.equalsIgnoreCase("y")){
         answer = true;
@@ -227,36 +249,32 @@ public class readWrite implements Serializable{
       }
       else{
         System.err.println("Input must be \"Y\" or \"N\".");
-        input = "";
-        loopDone = false;
       }
     }
     return answer;
   }
-  
+//--------------------------------------------------------------------  
   
   public boolean keepGoing(){
     String input;
-    boolean loopDone = false;
-    boolean answer = true;
+    boolean loopDone = false; //sentinel
+    boolean incomplete = true; //return
     
     while(! loopDone){
       System.out.println("\nContinue? (Y/N)");
       input = keyboard.next();
       
       if(input.equalsIgnoreCase("y")){
-        answer = true;
+        incomplete = true;
         loopDone = true;
       }
       else if(input.equalsIgnoreCase("n")){
-        answer = false;
+        incomplete = false;
         loopDone = true;
       }
       else{
         System.err.println("Input must be \"Y\" or \"N\".");
-        input = "";
-        loopDone = false;
       }
     }
-    return answer;
+    return incomplete;
   }
