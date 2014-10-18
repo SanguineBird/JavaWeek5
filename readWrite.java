@@ -24,11 +24,11 @@ public class readWrite implements Serializable{
       System.out.print("\nChoose binary or text file(b/t): ");
       fileType = keyboard.next();
       if (fileType.equalsIgnoreCase("b")){
-		fileName = (fileName + ".txt");
+		fileName = (fileName + ".dat");
 		inputTypeComplete = true;
 	  }
 	  else if (fileType.equalsIgnoreCase("t")){
-		fileName = (fileName + ".dat");
+		fileName = (fileName + ".txt");
         inputTypeComplete = true;
       }
       else{
@@ -129,11 +129,10 @@ public class readWrite implements Serializable{
   
   public void write(){
     if (! checkName()){ //if the file does not exist
-      String filePath = ("Week 5/" + fileName);
+      String filePath = (fileName);
       File fileObject = new File(filePath); 
       try{
         if(fileObject.createNewFile()){ //creates new file
-		  System.out.println("New file created.");
 		  }
 		  else{
 		    System.err.println("Error: new file cannot be created.\nProgram terminating.");
